@@ -4,10 +4,6 @@ on:
   push:
     branches:
       - master
-  schedule:
-    # run every 6 hours
-    - cron: '0 0,6,12,18 * * *'
-
 jobs:
   push:
     runs-on: ubuntu-latest
