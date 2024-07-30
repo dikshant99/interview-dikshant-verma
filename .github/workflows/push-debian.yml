@@ -1,4 +1,4 @@
-name: Push Alpine
+name: Push Debian
 
 on:
   push:
@@ -11,7 +11,7 @@ on:
 jobs:
   push:
     runs-on: ubuntu-latest
-    name: Alpine Push Demo
+    name: Debian Push Demo
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -22,10 +22,10 @@ jobs:
         with:
           api-key: ${{ secrets.CLOUDSMITH_API_KEY }}
           command: "push"
-          format: "alpine"
+          format: "deb"
           owner: "cloudsmith"
           repo: "actions"
-          distro: "alpine"
-          release: "v3.9"
+          distro: "ubuntu"
+          release: "xenial"
           republish: "true" # needed ONLY if version is not changing
-          file: "test/fixture/cloudsmith-alpine-example-1.0.0-r0.apk" #real file that will repeat versions
+          file: "test/fixture/cloudsmith-debian-example-1.0.0-amd64.deb" #real file that will repeat versions
