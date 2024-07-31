@@ -1,0 +1,42 @@
+name: Build and Push npm Package to Cloudsmith
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-upload:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '14'  # or another version you need
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build package
+        run: npm pack
+
+      - name: Install Cloudsmith CLI
+        run: pip install cloudsmith-cli
+
+      - name: Upload npm package to Cloudsmith
+        env:
+          CLOUDSMITH_API_KEY: ${{ secrets.CLOUDSMITH_API_KEY }}
+          CLOUDSMITH_ORG: ${{ secrets.CLOUDSMITH_ORG }}
+          CLOUDSMITH_REPO: ${{ secrets.CLOUDSMITH_REPO }}
+        run: |
+          # Find the built package
+          npm_package=$(ls *.tgz)
+          echo "Package built: $npm_package"
+
+          # Upload the built package
+          cloudsmith push npm $CLOUDSMITH_ORG/$CLOUDSMITH_REPO $npm_package --api-key $CLOUDSMITH_API_KEY
+
