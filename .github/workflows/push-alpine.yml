@@ -1,23 +1,23 @@
-name: Push Alpine
-on: push
-jobs:
+name: Push Alpine Package to Cloudsmith
+
+on:
   push:
+    branches:
+      - main
+
+jobs:
+  upload-package:
     runs-on: ubuntu-latest
-    name: Alpine Push Demo
     steps:
-      - uses: actions/checkout@v4
-      - name: Push
-        id: push
-        uses: cloudsmith-io/action@master
-        with:
-          api-key: ${{ secrets.CLOUDSMITH_API_KEY }}
-          command: "push"
-          format: "alpine"
-          owner: "dikshant99"
-          repo: "interview-dikshant-verma"
-          distro: "alpine"
-          name: "alpine"
-          release: "v3.9"
-          republish: "true" # needed ONLY if version is not changing
-          file: "test/fixture/cloudsmith-alpine-example-1.0.0-r0.apk"
-          tags: "tag1, tag2, tag3"
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Install Cloudsmith CLI
+      run: |
+        pip install cloudsmith-cli
+
+    - name: Upload Alpine package to Cloudsmith
+      env:
+        CLOUDSMITH_API_KEY: ${{ secrets.CLOUDSMITH_API_KEY }}
+      run: |
+        cloudsmith push alpine ${{ secrets.CLOUDSMITH_ORG }}/${{ secrets.CLOUDSMITH_REPO }} test/feature/*.apk --api-key $CLOUDSMITH_API_KEY
