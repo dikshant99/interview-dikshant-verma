@@ -24,4 +24,4 @@ jobs:
         CLOUDSMITH_DISTRO: "alpine"  # Assuming the distribution is Alpine
         CLOUDSMITH_RELEASE: "latest"  # Replace with the actual release version if known
       run: |
-        cloudsmith push alpine $CLOUDSMITH_ORG/$CLOUDSMITH_REPO/$CLOUDSMITH_DISTRO/$CLOUDSMITH_RELEASE test/feature/*.apk --api-key $CLOUDSMITH_API_KEY
+        cloudsmith push alpine $CLOUDSMITH_ORG/$CLOUDSMITH_REPO/$CLOUDSMITH_DISTRO/$CLOUDSMITH_RELEASE test/fixture/*.apk --api-key $CLOUDSMITH_API_KEY
