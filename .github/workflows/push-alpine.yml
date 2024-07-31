@@ -1,3 +1,4 @@
+
 name: Build and Push Alpine Package to Cloudsmith
 
 on:
@@ -41,8 +42,9 @@ jobs:
         EOF
 
         # Build the package using Alpine Docker container
-        docker run --rm -v /tmp/build:/home/build -w /home/build alpine:latest sh -c "
-          apk update && apk add alpine-sdk &&
+        docker run --rm -v /tmp/build:/home/build -w /home/build alpine:3.14 /bin/sh -c "
+          apk update && apk add --no-cache alpine-sdk &&
+          cd /home/build &&
           abuild-keygen -a -i -n &&
           abuild -r
         "
@@ -57,7 +59,7 @@ jobs:
         CLOUDSMITH_ORG: ${{ secrets.CLOUDSMITH_ORG }}
         CLOUDSMITH_REPO: ${{ secrets.CLOUDSMITH_REPO }}
         CLOUDSMITH_DISTRO: "alpine"
-        CLOUDSMITH_RELEASE: "v3.18"  # Replace with the correct Alpine version
+        CLOUDSMITH_RELEASE: "v3.14"  # Ensure the release matches the Docker image version
       run: |
         # Find the built package
         apk_path=$(find /tmp/build/packages -name "*.apk")
