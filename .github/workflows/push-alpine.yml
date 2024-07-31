@@ -13,12 +13,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    - name: Set up Alpine environment
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y alpine-sdk
-
-    - name: Build Alpine package
+    - name: Build Alpine package in Docker
       run: |
         # Create a temporary directory for building the package
         mkdir -p /tmp/build
@@ -45,14 +40,13 @@ jobs:
         }
         EOF
 
-        # Build the package
-        abuild-keygen -a -i -n  # Generate a new signing key
-        abuild -r  # Build the package
+        # Build the package using Alpine Docker container
+        docker run --rm -v /tmp/build:/home/build -w /home/build alpine:latest sh -c "
+          apk update && apk add alpine-sdk &&
+          abuild-keygen -a -i -n &&
+          abuild -r
+        "
 
-        # The built package will be in /tmp/packages/x86_64/
-        apk_path=$(find /tmp/packages/x86_64 -name "*.apk")
-        echo "Package built: $apk_path"
-      
     - name: Install Cloudsmith CLI
       run: |
         pip install cloudsmith-cli
@@ -65,5 +59,9 @@ jobs:
         CLOUDSMITH_DISTRO: "alpine"
         CLOUDSMITH_RELEASE: "v3.18"  # Replace with the correct Alpine version
       run: |
+        # Find the built package
+        apk_path=$(find /tmp/build/packages -name "*.apk")
+        echo "Package built: $apk_path"
+
         # Upload the built package
         cloudsmith push alpine $CLOUDSMITH_ORG/$CLOUDSMITH_REPO/$CLOUDSMITH_DISTRO/$CLOUDSMITH_RELEASE $apk_path --api-key $CLOUDSMITH_API_KEY
