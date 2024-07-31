@@ -1,4 +1,3 @@
-
 name: Build and Push Alpine Package to Cloudsmith
 
 on:
@@ -44,8 +43,8 @@ jobs:
         # Build the package using Alpine Docker container
         docker run --rm -v /tmp/build:/home/build -w /home/build alpine:3.14 /bin/sh -c "
           apk update && apk add --no-cache alpine-sdk &&
-          cd /home/build &&
-          abuild-keygen -a -i -n &&
+          abuild-keygen -a -i -n && \
+          cp /home/build/.abuild/*.rsa.pub /etc/apk/keys/ && \
           abuild -r
         "
 
