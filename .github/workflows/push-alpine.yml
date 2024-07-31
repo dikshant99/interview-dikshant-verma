@@ -1,4 +1,4 @@
-name: Push Alpine Package to Cloudsmith
+name: Build and Push Alpine Package to Cloudsmith
 
 on:
   push:
@@ -6,12 +6,53 @@ on:
       - main
 
 jobs:
-  upload-package:
+  build-and-upload:
     runs-on: ubuntu-latest
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
 
+    - name: Set up Alpine environment
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y alpine-sdk
+
+    - name: Build Alpine package
+      run: |
+        # Create a temporary directory for building the package
+        mkdir -p /tmp/build
+        cd /tmp/build
+        
+        # Create the APKBUILD file (example for a simple package)
+        cat > APKBUILD <<EOF
+        # Contributor: Your Name <your.email@example.com>
+        # Maintainer: Your Name <your.email@example.com>
+        pkgname=dummy-package
+        pkgver=1.0.0
+        pkgrel=0
+        pkgdesc="A dummy package for demonstration."
+        url="https://example.com/dummy-package"
+        arch="x86_64"
+        license="MIT"
+        depends=""
+        source=""
+        build() {
+          return 0
+        }
+        package() {
+          install -D /dev/null "\$pkgdir"/usr/bin/dummy-package
+        }
+        EOF
+
+        # Build the package
+        abuild-keygen -a -i -n  # Generate a new signing key
+        abuild -r  # Build the package
+
+        # The built package will be in /tmp/packages/x86_64/
+        apk_path=$(find /tmp/packages/x86_64 -name "*.apk")
+        echo "Package built: $apk_path"
+      
     - name: Install Cloudsmith CLI
       run: |
         pip install cloudsmith-cli
@@ -21,7 +62,8 @@ jobs:
         CLOUDSMITH_API_KEY: ${{ secrets.CLOUDSMITH_API_KEY }}
         CLOUDSMITH_ORG: ${{ secrets.CLOUDSMITH_ORG }}
         CLOUDSMITH_REPO: ${{ secrets.CLOUDSMITH_REPO }}
-        CLOUDSMITH_DISTRO: "alpine"  # Assuming the distribution is Alpine
-        CLOUDSMITH_RELEASE: "any-version"  # Replace with the actual release version if known
+        CLOUDSMITH_DISTRO: "alpine"
+        CLOUDSMITH_RELEASE: "v3.18"  # Replace with the correct Alpine version
       run: |
-        cloudsmith push alpine $CLOUDSMITH_ORG/$CLOUDSMITH_REPO/$CLOUDSMITH_DISTRO/$CLOUDSMITH_RELEASE test/fixture/*.apk --api-key $CLOUDSMITH_API_KEY
+        # Upload the built package
+        cloudsmith push alpine $CLOUDSMITH_ORG/$CLOUDSMITH_REPO/$CLOUDSMITH_DISTRO/$CLOUDSMITH_RELEASE $apk_path --api-key $CLOUDSMITH_API_KEY
